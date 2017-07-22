@@ -2,6 +2,7 @@ var mongoose = require('mongoose');
 var express = require('express');
 var router = express.Router();
 var Wish = mongoose.model('Wish');
+var auth = require('../auth');
 
 router.post('/wishes', auth.required, function(req, res, next){
   User.findById(req.payload.id).then(function(user){
