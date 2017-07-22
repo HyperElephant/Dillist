@@ -38,6 +38,7 @@ if(isProduction){
 }
 
 require('./models/User');
+require('./models/Wish');
 require('./config/passport');
 
 app.use(require('./routes'));
