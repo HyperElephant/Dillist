@@ -2,6 +2,7 @@ var mongoose = require('mongoose');
 var express = require('express');
 var router = express.Router();
 var Wish = mongoose.model('Wish');
+var User = mongoose.model('User');
 var auth = require('../auth');
 
 router.post('/wishes', auth.required, function(req, res, next){
@@ -18,3 +19,5 @@ router.post('/wishes', auth.required, function(req, res, next){
     });
   }).catch(next);
 })
+
+module.exports = router;
