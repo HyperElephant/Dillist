@@ -5,7 +5,7 @@ var Wish = mongoose.model('Wish');
 var User = mongoose.model('User');
 var auth = require('../auth');
 
-router.post('/', auth.required, function(req, res, next){
+router.post('/wishes', auth.required, function(req, res, next){
   User.findById(req.payload.id).then(function(user){
     if (!user) { return res.sendStatus(401); }
 
@@ -19,5 +19,6 @@ router.post('/', auth.required, function(req, res, next){
     });
   }).catch(next);
 })
+
 
 module.exports = router;

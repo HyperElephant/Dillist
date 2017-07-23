@@ -9,7 +9,7 @@ var WishSchema = new mongoose.Schema({
 
 WishSchema.plugin(uniqueValidator, {message: 'is already taken'});
 
-WishSchema.methods.toJSONFor = function(wish) {
+WishSchema.methods.toJSONFor = function(user) {
   return{
     title: this.title,
     url: this.url,
