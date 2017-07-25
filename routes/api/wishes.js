@@ -51,7 +51,7 @@ router.get('/wishes', auth.required, function(req, res, next) {
         .skip(Number(offset))
         .populate('author')
         .exec(),
-      Wish.count({ author: user.following})
+      Wish.count({ author: user})
     ]).then(function(results){
       var wishes = results[0];
       var wishesCount = results[1];
