@@ -15,6 +15,16 @@ router.param('wish', function(req, res, next, id) {
   }).catch(next);
 });
 
+router.param('user', function(req, res, next, username) {
+  User.findOne({username: username}).then(function(user){
+    if(!user) { return res.sendStatus(404); }
+
+    req.user = user;
+
+    return next();
+  }).catch(next);
+});
+
 router.post('/wishes', auth.required, function(req, res, next){
   User.findById(req.payload.id).then(function(user){
     if (!user) { return res.sendStatus(401); }
@@ -66,8 +76,7 @@ router.get('/wishes', auth.required, function(req, res, next) {
   });
 });
 
-router.get('/:user/wishes', auth.optional, function(req, res, next) {
-  var query = {};
+router.get('/wishes/:user', auth.required, function(req, res, next) {
   var limit = 20;
   var offset = 0;
 
@@ -79,28 +88,19 @@ router.get('/:user/wishes', auth.optional, function(req, res, next) {
     offset = req.query.offset;
   }
 
-  Promise.all([
-    req.query.author ? User.findOne({username: req.query.author}) : null,
-  ]).then(function(results){
-    var author = results[0];
+  User.findById(req.user.id).then(function(user){
+    if (!user) { return res.sendStatus(401); }
 
-    if(author){
-      query.author = author._id;
-    }
-
-    return Promise.all([
-      Wish.find(query)
+    Promise.all([
+      Wish.find({ author: user})
         .limit(Number(limit))
         .skip(Number(offset))
-        .sort({createdAt: 'desc'})
         .populate('author')
         .exec(),
-      Wish.count(query).exec(),
-      req.payload ? User.findById(req.payload.id) : null,
+      Wish.count({ author: user})
     ]).then(function(results){
       var wishes = results[0];
       var wishesCount = results[1];
-      var user = results[2];
 
       return res.json({
         wishes: wishes.map(function(wish){
@@ -108,9 +108,10 @@ router.get('/:user/wishes', auth.optional, function(req, res, next) {
         }),
         wishesCount: wishesCount
       });
-    });
-  }).catch(next);
+    }).catch(next);
+  });
 });
+
 
 router.delete('/wishes/:wish', auth.required, function(req, res, next) {
   if(req.wish.author._id.toString() === req.payload.id.toString()){
