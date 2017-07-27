@@ -12,7 +12,8 @@ var UserSchema = new mongoose.Schema({
     required: [true, "can't be blank"], match: [/\S+@\S+\.\S+/, 'is invalid'],
     index: true},
   hash: String,
-  salt: String
+  salt: String,
+  friends: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
 }, {timestamps: true});
 
 UserSchema.plugin(uniqueValidator, {message: 'is already taken.'});
@@ -50,7 +51,27 @@ UserSchema.methods.toAuthJSON = function(){
 UserSchema.methods.toProfileJSONFor = function(user){
   return {
     username: this.username,
+    friends: user ? user.isFriend(this._id) : false
   };
+};
+
+UserSchema.methods.friend = function(id){
+	if(this.friends.indexOf(id) === -1){
+		this.friends.push(id);
+	}
+
+	return this.save();
+};
+
+UserSchema.methods.unfriend = function(id){
+	this.friends.remove(id);
+	return this.save();
+};
+
+UserSchema.methods.isFriend = function(id){
+	return this.friends.some(function(friendId){
+		return friendId.toString() === id.toString();
+	});
 };
 
 mongoose.model('User', UserSchema);
