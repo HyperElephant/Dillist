@@ -6,11 +6,12 @@ var User = mongoose.model('User');
 var auth = require('../auth');
 
 router.param('wish', function(req, res, next, id) {
-  Wish.findById(id).then(function(wish){
+  Wish.findById(id).populate('author')
+  .exec().then(function(wish){
     if(!wish) { return res.sendStatus(404); }
 
     req.wish = wish;
-
+    var authorName = req.wish.author.username.toString();
     return next();
   }).catch(next);
 });
@@ -114,7 +115,9 @@ router.get('/wishes/:user', auth.required, function(req, res, next) {
 
 
 router.delete('/wishes/:wish', auth.required, function(req, res, next) {
-  if(req.wish.author._id.toString() === req.payload.id.toString()){
+  var authorName = req.wish.author.username.toString();
+  var username = req.payload.username.toString();
+  if(req.wish.author.username.toString() === req.payload.username.toString()){
     return req.wish.remove().then(function(){
       return res.sendStatus(204);
     });
