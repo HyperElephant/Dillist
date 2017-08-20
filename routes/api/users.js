@@ -14,6 +14,38 @@ router.get('/user', auth.required, function(req, res, next){
   }).catch(next);
 });
 
+router.get('/users', auth.required, function(req, res, next) {
+  var limit = 20;
+  var offset = 0;
+
+  if(typeof req.query.limit !== 'undefined'){
+    limit = req.query.limit;
+  }
+
+  if(typeof req.query.offset !== 'undefined'){
+    offset = req.query.offset;
+  }
+
+  Promise.all([
+    User.find()
+      .limit(Number(limit))
+      .skip(Number(offset))
+      .exec(),
+    User.count()
+  ]).then(function(results){
+    var users = results[0];
+    var userCount = results[1];
+
+    return res.json({
+      users: users.map(function(user){
+        return user.toProfileJSONFor(user);
+      }),
+      userCount: userCount
+    });
+  }).catch(next);
+
+});
+
 router.put('/user', auth.required, function(req, res, next){
   User.findById(req.payload.id).then(function(user){
     if(!user){ return res.sendStatus(401); }
