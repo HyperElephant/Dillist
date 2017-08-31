@@ -41,6 +41,32 @@ router.post('/wishes', auth.required, function(req, res, next){
   }).catch(next);
 })
 
+router.post('/wishes/:wish', auth.required, function(req, res, next){
+  User.findById(req.payload.id).then(function(user){
+    if (!user) { return res.sendStatus(401); }
+
+    var wish = new Wish(req.body.wish);
+
+    wish.author = user;
+
+    return wish.save().then(function(){
+      console.log(wish.author);
+      return res.json({wish: wish.toJSONFor(user)});
+    });
+  }).catch(next);
+})
+
+router.post('wishes/:username/claim', auth.required, function(req, res, next){
+  var wishID = req.wish._id;
+
+  Wish.findById(req.payload.id).then(function(user){
+    if(!wish || wish.giver) {return res.sendStatus(401);}
+    return wish.claim(profileId).then(function(){
+      return res.json({profile: req.profile.toProfileJSONFor(user)});
+    });
+  }).catch(next);
+});
+
 router.get('/wishes', auth.required, function(req, res, next) {
   var limit = 20;
   var offset = 0;
@@ -112,7 +138,6 @@ router.get('/wishes/:user', auth.required, function(req, res, next) {
     }).catch(next);
   });
 });
-
 
 router.delete('/wishes/:wish', auth.required, function(req, res, next) {
   var authorName = req.wish.author.username.toString();
