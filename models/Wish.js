@@ -17,19 +17,19 @@ WishSchema.methods.toJSONFor = function(user) {
     title: this.title,
     url: this.url,
     author: this.author.toProfileJSONFor(user),
-    giver: this.giver.toProfileJSONFor(user)
+    giver: this.giver ? this.giver.toProfileJSONFor(user) : this.giver
   };
 };
 
-WishSchema.methods.claim = function(id){
+WishSchema.methods.claim = function(user){
 	if(!this.giver){
-		this.giver = id;
+		this.giver = user;
 	}
 	return this.save();
 };
 
-WishSchema.methods.unClaim = function(id){
-	if(this.giver === id){
+WishSchema.methods.unClaim = function(user){
+	if(this.giver._id === user._id){
     this.giver = null;
   }
 	return this.save();

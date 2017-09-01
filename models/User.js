@@ -59,7 +59,6 @@ UserSchema.methods.friend = function(id){
 	if(this.friends.indexOf(id) === -1){
 		this.friends.push(id);
 	}
-
 	return this.save();
 };
 

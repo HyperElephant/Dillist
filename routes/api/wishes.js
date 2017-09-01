@@ -6,7 +6,7 @@ var User = mongoose.model('User');
 var auth = require('../auth');
 
 router.param('wish', function(req, res, next, id) {
-  Wish.findById(id).populate('author')
+  Wish.findById(id).populate('author').populate('giver')
   .exec().then(function(wish){
     if(!wish) { return res.sendStatus(404); }
 
@@ -35,7 +35,7 @@ router.post('/wishes', auth.required, function(req, res, next){
     wish.author = user;
 
     return wish.save().then(function(){
-      console.log(wish.author);
+      
       return res.json({wish: wish.toJSONFor(user)});
     });
   }).catch(next);
@@ -56,21 +56,23 @@ router.post('/wishes/:wish', auth.required, function(req, res, next){
   }).catch(next);
 })
 
-router.post('wishes/:username/claim', auth.required, function(req, res, next){
-  var wishID = req.wish._id;
+router.post('/wishes/:wish/claim', auth.required, function(req, res, next){
+  console.log(req.payload);
+  req.wish.claim(req.payload.id);
 
-  Wish.findById(req.payload.id).then(function(user){
-    if(!wish || wish.giver) {return res.sendStatus(401);}
-    return wish.claim(profileId).then(function(){
-      return res.json({profile: req.profile.toProfileJSONFor(user)});
+  User.findById(req.payload.id).then(function(user){
+    if(!user) {return res.sendStatus(401);}
+    return req.wish.claim(user).then(function(){
+      return res.json({wish: req.wish.toJSONFor(user)});
     });
   }).catch(next);
+  
 });
 
 router.get('/wishes', auth.required, function(req, res, next) {
   var limit = 20;
   var offset = 0;
-
+  
   if(typeof req.query.limit !== 'undefined'){
     limit = req.query.limit;
   }
@@ -81,7 +83,7 @@ router.get('/wishes', auth.required, function(req, res, next) {
 
   User.findById(req.payload.id).then(function(user){
     if (!user) { return res.sendStatus(401); }
-
+    
     Promise.all([
       Wish.find({ author: user})
         .limit(Number(limit))
