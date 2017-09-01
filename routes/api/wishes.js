@@ -58,11 +58,22 @@ router.post('/wishes/:wish', auth.required, function(req, res, next){
 
 router.post('/wishes/:wish/claim', auth.required, function(req, res, next){
   console.log(req.payload);
-  req.wish.claim(req.payload.id);
 
   User.findById(req.payload.id).then(function(user){
     if(!user) {return res.sendStatus(401);}
     return req.wish.claim(user).then(function(){
+      return res.json({wish: req.wish.toJSONFor(user)});
+    });
+  }).catch(next);
+  
+});
+
+router.post('/wishes/:wish/unclaim', auth.required, function(req, res, next){
+  console.log(req.payload);
+
+  User.findById(req.payload.id).then(function(user){
+    if(!user) {return res.sendStatus(401);}
+    return req.wish.unclaim(user).then(function(){
       return res.json({wish: req.wish.toJSONFor(user)});
     });
   }).catch(next);
@@ -89,6 +100,7 @@ router.get('/wishes', auth.required, function(req, res, next) {
         .limit(Number(limit))
         .skip(Number(offset))
         .populate('author')
+        .populate('giver')
         .exec(),
       Wish.count({ author: user})
     ]).then(function(results){
@@ -125,6 +137,7 @@ router.get('/wishes/:user', auth.required, function(req, res, next) {
         .limit(Number(limit))
         .skip(Number(offset))
         .populate('author')
+        .populate('giver')
         .exec(),
       Wish.count({ author: user})
     ]).then(function(results){

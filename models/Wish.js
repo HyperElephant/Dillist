@@ -12,6 +12,7 @@ var WishSchema = new mongoose.Schema({
 WishSchema.plugin(uniqueValidator, {message: 'is already taken'});
 
 WishSchema.methods.toJSONFor = function(user) {
+  
   return{
     id: this._id,
     title: this.title,
@@ -28,15 +29,15 @@ WishSchema.methods.claim = function(user){
 	return this.save();
 };
 
-WishSchema.methods.unClaim = function(user){
-	if(this.giver._id === user._id){
-    this.giver = null;
+WishSchema.methods.unclaim = function(user){
+	if(this.giver && this.giver._id.equals(user._id)){
+    this.giver = undefined;
   }
 	return this.save();
 };
 
-WishSchema.methods.haveClaimed = function(id){
-	return(this.giver === id);
+WishSchema.methods.haveClaimed = function(user){
+	return(this.giver._id.equals(user._id));
 };
 
 mongoose.model('Wish', WishSchema);
