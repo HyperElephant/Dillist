@@ -51,4 +51,29 @@ router.delete('/:username/friend', auth.required, function(req, res, next){
   }).catch(next);
 });
 
+router.post('/:username/request', auth.required, function(req, res, next){
+  const currentUserId = req.payload.id;
+  const otherUserId = req.profile._id;
+
+  const addIdToUserSentRequests = function(userId, idToAdd) {
+    return User.findById(userId).then(function(user){
+      if(!user) {return res.sendStatus(404);}
+      user.sendRequest(idToAdd);
+    });
+  }
+
+  const addIdToUserRecievedRequests = function(userId, idToAdd) {
+    return User.findById(userId).then(function(user){
+      if(!user) {return res.sendStatus(404);}
+      user.recieveRequest(idToAdd);
+    });
+  }
+
+  addIdToUserSentRequests(currentUserId, otherUserId).then(function() {
+    addIdToUserRecievedRequests(otherUserId, currentUserId).then(function(user) {
+      return res.json({profile: req.profile.toProfileJSONFor(user)});
+    });
+  }).catch(next);
+});
+
 module.exports = router;
