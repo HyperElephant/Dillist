@@ -17,6 +17,7 @@ router.param('wish', function(req, res, next, id) {
 });
 
 router.param('user', function(req, res, next, username) {
+  console.log("populating user");
   User.findOne({username: username}).then(function(user){
     if(!user) { return res.sendStatus(404); }
 
@@ -26,7 +27,7 @@ router.param('user', function(req, res, next, username) {
   }).catch(next);
 });
 
-router.post('/wishes', auth.required, function(req, res, next){
+router.post('/', auth.required, function(req, res, next){
   User.findById(req.payload.id).then(function(user){
     if (!user) { return res.sendStatus(401); }
 
@@ -41,7 +42,7 @@ router.post('/wishes', auth.required, function(req, res, next){
   }).catch(next);
 })
 
-router.post('/wishes/:wish', auth.required, function(req, res, next){
+router.post('/:wish', auth.required, function(req, res, next){
   User.findById(req.payload.id).then(function(user){
     if (!user) { return res.sendStatus(401); }
 
@@ -56,7 +57,7 @@ router.post('/wishes/:wish', auth.required, function(req, res, next){
   }).catch(next);
 })
 
-router.post('/wishes/:wish/claim', auth.required, function(req, res, next){
+router.post('/:wish/claim', auth.required, function(req, res, next){
   console.log(req.payload);
 
   User.findById(req.payload.id).then(function(user){
@@ -68,7 +69,7 @@ router.post('/wishes/:wish/claim', auth.required, function(req, res, next){
   
 });
 
-router.post('/wishes/:wish/unclaim', auth.required, function(req, res, next){
+router.post('/:wish/unclaim', auth.required, function(req, res, next){
   console.log(req.payload);
 
   User.findById(req.payload.id).then(function(user){
@@ -80,7 +81,7 @@ router.post('/wishes/:wish/unclaim', auth.required, function(req, res, next){
   
 });
 
-router.get('/wishes', auth.required, function(req, res, next) {
+router.get('/', auth.required, function(req, res, next) {
   var limit = 20;
   var offset = 0;
   
@@ -117,7 +118,7 @@ router.get('/wishes', auth.required, function(req, res, next) {
   });
 });
 
-router.get('/wishes/:user', auth.required, function(req, res, next) {
+router.get('/user/:user', auth.required, function(req, res, next) {
   var limit = 20;
   var offset = 0;
 
@@ -154,7 +155,7 @@ router.get('/wishes/:user', auth.required, function(req, res, next) {
   });
 });
 
-router.delete('/wishes/:wish', auth.required, function(req, res, next) {
+router.delete('/:wish', auth.required, function(req, res, next) {
   var authorName = req.wish.author.username.toString();
   var username = req.payload.username.toString();
   if(req.wish.author.username.toString() === req.payload.username.toString()){
@@ -164,6 +165,43 @@ router.delete('/wishes/:wish', auth.required, function(req, res, next) {
   } else {
     return res.sendStatus(403);
   }
+});
+
+router.get('/claimed', auth.required, function(req, res, next) {
+  var limit = 20;
+  var offset = 0;
+  
+  if(typeof req.query.limit !== 'undefined'){
+    limit = req.query.limit;
+  }
+
+  if(typeof req.query.offset !== 'undefined'){
+    offset = req.query.offset;
+  }
+
+  User.findById(req.payload.id).then(function(user){
+    if (!user) { return res.sendStatus(401); }
+    
+    Promise.all([
+      Wish.find({ giver: user})
+        .limit(Number(limit))
+        .skip(Number(offset))
+        .populate('author')
+        .populate('giver')
+        .exec(),
+      Wish.count({ giver: user})
+    ]).then(function(results){
+      var wishes = results[0];
+      var wishesCount = results[1];
+
+      return res.json({
+        wishes: wishes.map(function(wish){
+          return wish.toJSONFor(user);
+        }),
+        wishesCount: wishesCount
+      });
+    }).catch(next);
+  });
 });
 
 module.exports = router;
