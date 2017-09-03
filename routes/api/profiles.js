@@ -8,7 +8,10 @@ var auth = require('../auth');
 
 router.param('username', function(req, res, next, username){
   User.findOne({username: username}).then(function(user){
-    if(!user) {return res.sendStatus(404); }
+    if(!user) {
+      console.log("Username not found");
+      return res.sendStatus(404); 
+    }
 
     req.profile = user;
 
@@ -52,19 +55,26 @@ router.delete('/:username/friend', auth.required, function(req, res, next){
 });
 
 router.post('/:username/request', auth.required, function(req, res, next){
+  console.log("Request post");
   const currentUserId = req.payload.id;
   const otherUserId = req.profile._id;
 
   const addIdToUserSentRequests = function(userId, idToAdd) {
     return User.findById(userId).then(function(user){
-      if(!user) {return res.sendStatus(404);}
+      if(!user) {
+        console.log(userId + " not found in addIdToUserSentRequests");
+        return res.sendStatus(404);
+      }
       user.sendRequest(idToAdd);
     });
   }
 
   const addIdToUserRecievedRequests = function(userId, idToAdd) {
     return User.findById(userId).then(function(user){
-      if(!user) {return res.sendStatus(404);}
+      if(!user) {
+        console.log(userId + " not found in addIdToUserRecievedRequests");
+        return res.sendStatus(404);
+      }
       user.recieveRequest(idToAdd);
     });
   }
