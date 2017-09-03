@@ -29,8 +29,8 @@ router.get('/friends', auth.required, function(req, res, next){
       var users = results[0];
   
       return res.json({
-        friends: users.map(function(user){
-          return user.toProfileJSONFor(user);
+        friends: users.map(function(friend){
+          return friend.toProfileJSONFor(user);
         })
       });
     }).catch(next);
