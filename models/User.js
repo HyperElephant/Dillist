@@ -51,7 +51,7 @@ UserSchema.methods.toAuthJSON = function(){
 UserSchema.methods.toProfileJSONFor = function(user){
   return {
     username: this.username,
-    friends: user ? user.isFriend(this._id) : false
+    isFriend: user ? user.isFriend(this._id) : false
   };
 };
 
