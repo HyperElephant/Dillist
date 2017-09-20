@@ -15,58 +15,78 @@ router.get('/user', auth.required, function(req, res, next){
 });
 
 router.get('/friends', auth.required, function(req, res, next){
+  console.log("friends");
   User.findById(req.payload.id).then(function(user){
-    if(!user){ return res.sendStatus(401); }
-    console.log(user);
+    if(!user){ return res.sendStatus(401); }    
+    var limit = 20;
+    var offset = 0;
+  
+    if(typeof req.query.limit !== 'undefined'){
+      limit = req.query.limit;
+    }
+  
+    if(typeof req.query.offset !== 'undefined'){
+      offset = req.query.offset;
+    }
+
     var query = {};
     var friendsList = user.friends ? user.friends : [];
     query._id = {$in :  friendsList};
     
     Promise.all([
       User.find(query)
+        .limit(Number(limit))
+        .skip(Number(offset))
         .exec()
     ]).then(function(results){
       var users = results[0];
+      var userCount = results[0].length;
   
       return res.json({
         friends: users.map(function(friend){
           return friend.toProfileJSONFor(user);
-        })
+        }),
+        friendCount: userCount
       });
     }).catch(next);
   });
 });
 
 router.get('/users', auth.required, function(req, res, next) {
-  var limit = 20;
-  var offset = 0;
+  console.log("users");
+  User.findById(req.payload.id).then(function(currentUser){
+    if(!currentUser){ return res.sendStatus(401); }  
+    var limit = 20;
+    var offset = 0;
 
-  if(typeof req.query.limit !== 'undefined'){
-    limit = req.query.limit;
-  }
+    if(typeof req.query.limit !== 'undefined'){
+      limit = req.query.limit;
+    }
 
-  if(typeof req.query.offset !== 'undefined'){
-    offset = req.query.offset;
-  }
+    if(typeof req.query.offset !== 'undefined'){
+      offset = req.query.offset;
+    }
+    var query = {};
+    query._id = {$nin: currentUser._id};
 
-  Promise.all([
-    User.find()
-      .limit(Number(limit))
-      .skip(Number(offset))
-      .exec(),
-    User.count()
-  ]).then(function(results){
-    var users = results[0];
-    var userCount = results[1];
+    Promise.all([
+      User.find(query)
+        .limit(Number(limit))
+        .skip(Number(offset))
+        .exec(),
+      User.count()
+    ]).then(function(results){
+      var users = results[0];
+      var userCount = results[1];
 
-    return res.json({
-      users: users.map(function(user){
-        return user.toProfileJSONFor(user);
-      }),
-      userCount: userCount
-    });
-  }).catch(next);
-
+      return res.json({
+        users: users.map(function(user){
+          return user.toProfileJSONFor(currentUser);
+        }),
+        userCount: userCount
+      });
+    }).catch(next);
+  });
 });
 
 router.put('/user', auth.required, function(req, res, next){
@@ -88,7 +108,7 @@ router.put('/user', auth.required, function(req, res, next){
       return res.json({user: user.toAuthJSON()});
     });
   }).catch(next);
-});
+  });
 
 router.post('/users/login', function(req, res, next){
   if(!req.body.user.email){
