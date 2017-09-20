@@ -51,9 +51,13 @@ UserSchema.methods.toAuthJSON = function(){
 };
 
 UserSchema.methods.toProfileJSONFor = function(user){
+  var userIsFriend = user ? user.isFriend(this._id) : false;
+
   return {
     username: this.username,
-    isFriend: user ? user.isFriend(this._id) : false
+    isFriend: userIsFriend,
+    requestSent: this.checkRequestSent(user),
+    requestRecieved: this.checkRequestRecieved(user),
   };
 };
 
@@ -112,5 +116,35 @@ UserSchema.methods.requestIsRecieved = function(id) {
     return recieveRequest.toString() === id.toString();
   });
 };
+
+UserSchema.methods.checkRequestSent = function(toUser) {
+  var thisSentRequest = this.requestIsSent(toUser._id);
+  var userRecievedRequest = toUser.requestIsRecieved(this._id);
+
+  if (thisSentRequest && userRecievedRequest) {
+    return true;
+  }
+  else if (!thisSentRequest && !userRecievedRequest) {
+    return false;
+  }
+  else {
+    return undefined;
+  }
+}
+
+UserSchema.methods.checkRequestRecieved = function(fromUser) {
+  var userSentRequest = fromUser.requestIsSent(this._id);
+  var thisRecievedRequest = this.requestIsRecieved(fromUser._id);
+
+  if (userSentRequest && thisRecievedRequest) {
+    return true;
+  }
+  else if (!userSentRequest && !thisRecievedRequest) {
+    return false;
+  }
+  else {
+    return undefined;
+  }
+}
 
 mongoose.model('User', UserSchema);

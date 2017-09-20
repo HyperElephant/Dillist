@@ -55,7 +55,6 @@ router.delete('/:username/friend', auth.required, function(req, res, next){
 });
 
 router.post('/:username/request', auth.required, function(req, res, next){
-  console.log("Request post");
   const currentUserId = req.payload.id;
   const otherUserId = req.profile._id;
 
@@ -66,6 +65,7 @@ router.post('/:username/request', auth.required, function(req, res, next){
         return res.sendStatus(404);
       }
       user.sendRequest(idToAdd);
+      return user;
     });
   }
 
@@ -76,14 +76,29 @@ router.post('/:username/request', auth.required, function(req, res, next){
         return res.sendStatus(404);
       }
       user.recieveRequest(idToAdd);
+      return user;
     });
   }
 
-  addIdToUserSentRequests(currentUserId, otherUserId).then(function() {
-    addIdToUserRecievedRequests(otherUserId, currentUserId).then(function(user) {
-      return res.json({profile: req.profile.toProfileJSONFor(user)});
+  addIdToUserSentRequests(currentUserId, otherUserId).then(function(currentUser) {
+    addIdToUserRecievedRequests(otherUserId, currentUserId).then(function(otherUser) {
+
+      return res.json({profile: req.profile.toProfileJSONFor(currentUser)});
     });
   }).catch(next);
+});
+
+router.post('/:username/accept', auth.required, function(req, res, next){
+  const currentUserId = req.payload.id;
+  const otherUserId = req.profile._id;
+
+  function otherRequestedCurrent(otherUser, currentUser) {
+    return (otherUser.checkRequestSent(currentUser) && currentUser.checkRequestRecieved(otherUser));
+  }
+
+  if (otherRequestedCurrent) {
+    console.log("Ready to accept.");
+  }
 });
 
 module.exports = router;
