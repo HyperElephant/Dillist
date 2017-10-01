@@ -87,34 +87,18 @@ router.post('/:username/request', auth.required, function(req, res, next){
 });
 
 router.post('/:username/accept', auth.required, function(req, res, next){
-  const currentUser = req.payload;
   const otherUser = req.profile;
-
-  // function otherRequestedCurrent(otherUserID, currentUserID) {
-  //   User.findById(otherUserID).then(function(otherUser) {
-  //     User.findById(currentUserID).then(function(currentUser) {
-  //       var sentAndRecieved = otherUser.checkRequestSentAndUserRecieved(currentUser);
-  //       console.log("Sent and recieved: " + sentAndRecieved);
-  //       return (sentAndRecieved);
-  //     })
-  //   })
-  // }
 
   User.findById(req.payload.id).then(function(currentUser){
     if(otherUser.checkRequestSentAndUserRecieved(currentUser)){
-      console.log("Ready to accept.");
+      otherUser.friend(currentUser._id);
+      currentUser.friend(otherUser._id);
+      otherUser.removeRequest(currentUser._id);
+      currentUser.removeRequest(otherUser._id);
+
+      return res.json({profile: req.profile.toProfileJSONFor(currentUser)});
     }
   });
-
-  // console.log("Checking...");
-
-  // var requested = otherUser.checkRequestSentAndUserRecieved(currentUser);
-
-  // console.log("Requested: " + requested);
-
-  // if (requested) {
-  //   console.log("Ready to accept.");
-  // }
 });
 
 module.exports = router;
