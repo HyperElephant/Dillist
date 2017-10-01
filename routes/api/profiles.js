@@ -88,22 +88,22 @@ router.post('/:username/request', auth.required, function(req, res, next){
 });
 
 router.post('/:username/accept', auth.required, function(req, res, next){
-  const currentUserId = req.payload.id;
-  const otherUserId = req.profile._id;
+  const currentUser = req.payload;
+  const otherUser = req.profile;
 
-  function otherRequestedCurrent(otherUserID, currentUserID) {
-    User.findById(otherUserID).then(function(otherUser) {
-      User.findById(currentUserID).then(function(currentUser) {
-        var sentAndRecieved = otherUser.checkRequestSentAndUserRecieved(currentUser);
-        console.log("Sent and recieved: " + sentAndRecieved);
-        return (sentAndRecieved);
-      })
-    })
-  }
+  // function otherRequestedCurrent(otherUserID, currentUserID) {
+  //   User.findById(otherUserID).then(function(otherUser) {
+  //     User.findById(currentUserID).then(function(currentUser) {
+  //       var sentAndRecieved = otherUser.checkRequestSentAndUserRecieved(currentUser);
+  //       console.log("Sent and recieved: " + sentAndRecieved);
+  //       return (sentAndRecieved);
+  //     })
+  //   })
+  // }
 
   console.log("Checking...");
 
-  var requested = otherRequestedCurrent(otherUserId, currentUserId);
+  var requested = otherUser.checkRequestSentAndUserRecieved(currentUser);
 
   console.log("Requested: " + requested);
 
