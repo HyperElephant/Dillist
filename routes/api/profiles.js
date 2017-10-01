@@ -5,7 +5,6 @@ var passport = require('passport');
 var User = mongoose.model('User');
 var auth = require('../auth');
 
-
 router.param('username', function(req, res, next, username){
   User.findOne({username: username}).then(function(user){
     if(!user) {
@@ -101,15 +100,21 @@ router.post('/:username/accept', auth.required, function(req, res, next){
   //   })
   // }
 
-  console.log("Checking...");
+  User.findById(req.payload.id).then(function(currentUser){
+    if(otherUser.checkRequestSentAndUserRecieved(currentUser)){
+      console.log("Ready to accept.");
+    }
+  });
 
-  var requested = otherUser.checkRequestSentAndUserRecieved(currentUser);
+  // console.log("Checking...");
 
-  console.log("Requested: " + requested);
+  // var requested = otherUser.checkRequestSentAndUserRecieved(currentUser);
 
-  if (requested) {
-    console.log("Ready to accept.");
-  }
+  // console.log("Requested: " + requested);
+
+  // if (requested) {
+  //   console.log("Ready to accept.");
+  // }
 });
 
 module.exports = router;
