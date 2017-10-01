@@ -94,12 +94,20 @@ router.post('/:username/accept', auth.required, function(req, res, next){
   function otherRequestedCurrent(otherUserID, currentUserID) {
     User.findById(otherUserID).then(function(otherUser) {
       User.findById(currentUserID).then(function(currentUser) {
-        return (otherUser.checkRequestSentAndUserRecieved(currentUser));
+        var sentAndRecieved = otherUser.checkRequestSentAndUserRecieved(currentUser);
+        console.log("Sent and recieved: " + sentAndRecieved);
+        return (sentAndRecieved);
       })
     })
   }
 
-  if (otherRequestedCurrent(otherUserId, currentUserId)) {
+  console.log("Checking...");
+
+  var requested = otherRequestedCurrent(otherUserId, currentUserId);
+
+  console.log("Requested: " + requested);
+
+  if (requested) {
     console.log("Ready to accept.");
   }
 });
