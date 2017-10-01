@@ -82,7 +82,6 @@ router.post('/:username/request', auth.required, function(req, res, next){
 
   addIdToUserSentRequests(currentUserId, otherUserId).then(function(currentUser) {
     addIdToUserRecievedRequests(otherUserId, currentUserId).then(function(otherUser) {
-
       return res.json({profile: req.profile.toProfileJSONFor(currentUser)});
     });
   }).catch(next);
@@ -92,11 +91,15 @@ router.post('/:username/accept', auth.required, function(req, res, next){
   const currentUserId = req.payload.id;
   const otherUserId = req.profile._id;
 
-  function otherRequestedCurrent(otherUser, currentUser) {
-    return (otherUser.checkRequestSent(currentUser) && currentUser.checkRequestRecieved(otherUser));
+  function otherRequestedCurrent(otherUserID, currentUserID) {
+    User.findById(otherUserID).then(function(otherUser) {
+      User.findById(currentUserID).then(function(currentUser) {
+        return (otherUser.checkRequestSentAndUserRecieved(currentUser));
+      })
+    })
   }
 
-  if (otherRequestedCurrent) {
+  if (otherRequestedCurrent(otherUserId, currentUserId)) {
     console.log("Ready to accept.");
   }
 });

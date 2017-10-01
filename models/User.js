@@ -56,8 +56,8 @@ UserSchema.methods.toProfileJSONFor = function(user){
   return {
     username: this.username,
     isFriend: userIsFriend,
-    requestSent: this.checkRequestSent(user),
-    requestRecieved: this.checkRequestRecieved(user),
+    requestSentToUser: user.checkRequestSentAndUserRecieved(this),
+    requestRecievedFromUser: this.checkRequestSentAndUserRecieved(user),
   };
 };
 
@@ -117,32 +117,21 @@ UserSchema.methods.requestIsRecieved = function(id) {
   });
 };
 
-UserSchema.methods.checkRequestSent = function(toUser) {
+UserSchema.methods.checkRequestSentAndUserRecieved = function(toUser) {
   var thisSentRequest = this.requestIsSent(toUser._id);
   var userRecievedRequest = toUser.requestIsRecieved(this._id);
 
+  console.log("Checking '" + this.username + "' sent request to '" + toUser.username + "'.");  
   if (thisSentRequest && userRecievedRequest) {
+    console.log("Request was sent.");
     return true;
   }
   else if (!thisSentRequest && !userRecievedRequest) {
+    console.log("Request was not sent.")
     return false;
   }
   else {
-    return undefined;
-  }
-}
-
-UserSchema.methods.checkRequestRecieved = function(fromUser) {
-  var userSentRequest = fromUser.requestIsSent(this._id);
-  var thisRecievedRequest = this.requestIsRecieved(fromUser._id);
-
-  if (userSentRequest && thisRecievedRequest) {
-    return true;
-  }
-  else if (!userSentRequest && !thisRecievedRequest) {
-    return false;
-  }
-  else {
+    console.log("Mismatched data.");
     return undefined;
   }
 }
