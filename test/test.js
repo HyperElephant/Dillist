@@ -1,17 +1,37 @@
-var should = require('should');
+let Mongoose = require('mongoose').Mongoose;
+let mongoose = new Mongoose();
 
-describe('number', function() {
-    it ('5 should be 5', function() {
-        (5).should.be.exactly(5).and.be.a.Number();
-    });
+let Mockgoose = require('mockgoose').Mockgoose;
+let mockgoose = new Mockgoose(mongoose);
+
+let chai = require('chai');
+let chaiHttp = require('chai-http');
+let server = require('../app');
+let should = chai.should();
+
+
+process.env.NODE_ENV = 'test';
+chai.use(chaiHttp);
+
+before(function(done) {
+  mockgoose.prepareStorage().then(function() {
+    mongoose.connect('mongodb://localhost/conduit', function(err) {
+      done(err);
+    })
+  });
 });
 
-
-var assert = require('assert');
-describe('Array', function() {
-  describe('#indexOf()', function() {
-    it('should return -1 when the value is not present', function() {
-      assert.equal(-1, [1,2,3].indexOf(4));
-    });
-  });
+describe('Server', () => {
+  describe('/GET users', () => {
+    it('it should get no books, the server should be empty', (done) => {
+      chai.request(server)
+        .get('api/users')
+        .end((err, res) => {
+          res.body.should.have(users);
+          res.body.should.have(userCount);
+          res.body.userCount.should.be.eql(0);
+          done(err);
+        })
+    })
+  })
 });
