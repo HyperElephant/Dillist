@@ -35,10 +35,11 @@ describe('Server', () => {
   describe('/GET users', () => {
     it('it should get no users, the server should be empty', (done) => {
       chai.request(server)
-        .get('api/users')
+        .get('/api/users')
         .end((err, res) => {
-          res.body.should.have(users);
-          res.body.should.have(userCount);
+          console.log("Server: " + server);
+          res.body.should.have.param("users");
+          res.body.should.have.param("userCount");
           res.body.userCount.should.be.eql(0);
           done();
         })
