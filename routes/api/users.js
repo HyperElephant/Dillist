@@ -53,7 +53,7 @@ router.get('/friends', auth.required, function(req, res, next){
 });
 
 router.get('/users', auth.required, function(req, res, next) {
-  console.log("users");
+  console.log("GETTING USERS");
   User.findById(req.payload.id).then(function(currentUser){
     if(!currentUser){ return res.sendStatus(401); }  
     var limit = 20;

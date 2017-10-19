@@ -25,7 +25,7 @@ if (mockgoose.helper.isMocked) {
 before(function(done) {
   mockgoose.prepareStorage().then(function() {
     console.log("Before connect");
-    mongoose.connect('mongodb://localhost/conduit', function(err) {
+    mongoose.connect('mongodb://localhost/dillist', function(err) {
       done(err);
     })
   });
@@ -34,6 +34,7 @@ before(function(done) {
 describe('Server', () => {
   describe('/GET users', () => {
     it('it should get no users, the server should be empty', (done) => {
+      console.log("after it");
       chai.request(server)
         .get('/api/users')
         .end((err, res) => {
