@@ -13,8 +13,18 @@ let should = chai.should();
 process.env.NODE_ENV = 'test';
 chai.use(chaiHttp);
 
+if (mockgoose.helper.isMocked) {
+  // mocked
+  console.log("mocked");
+} else {
+  // mock it now
+  console.log("not mocked, mocking");
+  mockgoose(mongoose);
+}
+
 before(function(done) {
   mockgoose.prepareStorage().then(function() {
+    console.log("Before connect");
     mongoose.connect('mongodb://localhost/conduit', function(err) {
       done(err);
     })
@@ -23,14 +33,14 @@ before(function(done) {
 
 describe('Server', () => {
   describe('/GET users', () => {
-    it('it should get no books, the server should be empty', (done) => {
+    it('it should get no users, the server should be empty', (done) => {
       chai.request(server)
         .get('api/users')
         .end((err, res) => {
           res.body.should.have(users);
           res.body.should.have(userCount);
           res.body.userCount.should.be.eql(0);
-          done(err);
+          done();
         })
     })
   })
